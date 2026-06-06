@@ -1,5 +1,12 @@
 # llms-generator
 
+<p align="center">
+  <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/v/llms-generator" alt="PyPI"></a>
+  <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/pyversions/llms-generator" alt="Python Versions"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
+  <a href="https://github.com/aouwalitshikkha/llms-generator"><img src="https://img.shields.io/github/stars/aouwalitshikkha/llms-generator" alt="GitHub Stars"></a>
+</p>
+
 **Crawl any website and generate `llms.txt`** — the AI-ready site map standard.
 
 `llms.txt` is a markdown file placed at a website's root (`/llms.txt`) that helps AI assistants like ChatGPT, Claude, and Perplexity understand your site's content structure. Think of it as *robots.txt for AI*.
@@ -98,14 +105,18 @@ Pages with `noindex` are **excluded from `llms.txt`**. Pages with `nofollow` are
 
 ### Crawl strategy
 
-1. Parse `robots.txt` — respect `Disallow` and `Crawl-Delay`
+1. Parse `robots.txt` — respect `Disallow` and `Crawl-Delay` (gracefully handles missing or restricted robots.txt)
 2. BFS from the start URL up to `--depth` levels
 3. For each page:
     - Fetch with `requests` (handles most sites)
+    - Skip 4xx/5xx responses, non-HTML content, and `X-Robots-Tag: noindex`
     - If content is empty (JS-rendered), fall back to Playwright headless browser
     - Extract: `<title>`, `<h1>`, `<meta name="description">`, first meaningful paragraph, directory path
+    - Check `<meta name="robots">` — `noindex` excludes the page, `nofollow` prevents link crawling
 4. Group pages into sections (directory-based, with H1 fallback)
 5. Assemble `llms.txt` per the spec
+
+> **Performance note:** Playwright browser is launched once and reused across all JS fallback fetches, then cleaned up when the crawl completes.
 
 ### Section grouping
 
@@ -147,6 +158,20 @@ This file provides AI systems with a structured summary of this website.
 With `--full`, an expanded version is also generated that includes the full text content of each page inline — useful for providing complete context to LLMs in a single file.
 
 ---
+
+## Changelog
+
+### v0.1.1 (2026-06-06)
+
+- **Fixed:** robots.txt returning 403/blocked no longer kills the entire crawl — gracefully falls back to allow-all
+- **Fixed:** `--full` flag now generates separate `llms.txt` (summary) and `llms-full.txt` (full content) as specified
+- **Fixed:** URL fragment stripping no longer corrupts paths (`str.rstrip` → proper split)
+- **Fixed:** `<h1>` text no longer overrides URL-path-based section grouping
+- **Fixed:** Playwright fallback no longer triggered on 404/500 errors — only on empty JS-rendered content
+- **Optimized:** Playwright browser instance reused across all JS fallback fetches (was launching/closing per-page)
+- **Optimized:** HTML parsed once per page instead of three times (directives, metadata, link extraction)
+- **Fixed:** `requirements.txt` no longer forces Playwright install (matches `pyproject.toml` optional-dep spec)
+- **Removed:** Dead `isinstance(href, (list, tuple))` branch and unused regex
 
 ## Development
 
