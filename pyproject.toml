@@ -7,14 +7,13 @@ name = "llms-generator"
 dynamic = ["version"]
 description = "Crawl any website and generate llms.txt — the AI-ready site map standard."
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 authors = [{name = "aouwalitshikkha"}]
 keywords = ["llms.txt", "crawler", "seo", "ai", "llm"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
