@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## v0.1.6 (2026-06-06)
+
+- **Updated:** README cleaned up. Removed em dashes and AI-sounding phrases. Added Read the Docs badge and documentation link.
+
+# Changelog
+
 ## v0.1.5 (2026-06-06)
 
 - **Added:** Changelog URL in pyproject.toml so the changelog link appears on PyPI
