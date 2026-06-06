@@ -122,6 +122,18 @@ With `--full`, the tool also writes `llms-full.txt` with every page's full text 
 
 ---
 
+## Contributing
+
+1. Fork the repo and clone it
+2. Create a branch: `git checkout -b my-change`
+3. Install for development: `pip install -e .`
+4. Run tests: `python -m pytest tests/`
+5. Push and open a pull request
+
+Keep PRs focused. One change per PR. Write a clear description of what you changed and why.
+
+---
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
