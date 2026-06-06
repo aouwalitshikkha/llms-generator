@@ -59,17 +59,18 @@ def main(argv: list[str] | None = None) -> None:
 
     sections = group_pages(pages)
 
-    output = generate_llms_txt(sections, args.full)
+    output = generate_llms_txt(sections, full=False)
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(output)
     print(f"Wrote {args.output} with {len(pages)} pages across {len(sections)} sections.")
 
     if args.full:
+        full_output = generate_llms_txt(sections, full=True)
         full_path = args.output.replace("llms.txt", "llms-full.txt")
         if full_path == args.output:
             full_path = "llms-full.txt"
         with open(full_path, "w", encoding="utf-8") as f:
-            f.write(output)
+            f.write(full_output)
         print(f"Wrote {full_path}.")
 
 

@@ -7,11 +7,10 @@ from typing import Optional
 from urllib.parse import urljoin, urlparse
 
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 from llms_generator.page_analyzer import (
     PageInfo,
-    RobotsDirectives,
     extract_page_info,
     parse_meta_robots,
     parse_robots_header,
@@ -42,34 +41,41 @@ class Crawler:
         self._visited: set[str] = set()
         self._pages: list[PageInfo] = []
 
+        self._playwright = None
+        self._playwright_browser = None
+
     def run(self) -> list[PageInfo]:
         self._load_robots_txt()
         queue: deque[tuple[str, int]] = deque()
         queue.append((self.start_url, 0))
         self._visited.add(self.start_url)
 
-        while queue:
-            url, depth = queue.popleft()
-            if depth > self.max_depth:
-                continue
+        try:
+            while queue:
+                url, depth = queue.popleft()
+                if depth > self.max_depth:
+                    continue
 
-            if not self._is_allowed(url):
-                continue
+                if not self._is_allowed(url):
+                    continue
 
-            page = self._fetch_and_analyze(url, depth)
-            if page is None:
-                continue
+                result = self._fetch_and_analyze(url, depth)
+                if result is None:
+                    continue
 
-            self._pages.append(page)
+                page, soup, follow = result
+                self._pages.append(page)
 
-            if depth < self.max_depth:
-                links = self._extract_links(url, page.raw_html)
-                for link in links:
-                    if link not in self._visited:
-                        self._visited.add(link)
-                        queue.append((link, depth + 1))
+                if follow and depth < self.max_depth:
+                    links = self._extract_links(url, soup)
+                    for link in links:
+                        if link not in self._visited:
+                            self._visited.add(link)
+                            queue.append((link, depth + 1))
 
-            time.sleep(self.delay)
+                time.sleep(self.delay)
+        finally:
+            self._close_playwright()
 
         return self._pages
 
@@ -81,6 +87,8 @@ class Crawler:
         rp.set_url(urljoin(self._base, "/robots.txt"))
         try:
             rp.read()
+            if not rp.entries:
+                rp = None
         except Exception:
             rp = None
         self._rp = rp
@@ -96,101 +104,116 @@ class Crawler:
     # ------------------------------------------------------------------
     #  Fetch + analyze
     # ------------------------------------------------------------------
-    def _fetch_and_analyze(self, url: str, depth: int) -> PageInfo | None:
+    def _fetch_and_analyze(self, url: str, depth: int) -> tuple[PageInfo, BeautifulSoup, bool] | None:
         html = self._fetch(url)
         if html is None:
             return None
 
-        page = extract_page_info(url, html, depth)
+        soup = BeautifulSoup(html, "html.parser")
 
-        directives = self._check_robots_directives(html)
+        directives = parse_meta_robots(soup)
         if directives.noindex:
             return None
 
-        return page
+        page = extract_page_info(url, html, depth, soup=soup)
+        return page, soup, not directives.nofollow
 
     def _fetch(self, url: str) -> str | None:
         try:
             resp = self._session.get(url, timeout=30)
-            resp.raise_for_status()
         except requests.RequestException:
             return self._fetch_with_playwright(url)
+
+        if resp.status_code >= 400:
+            return None
 
         ct = (resp.headers.get("Content-Type") or "").lower()
         if "text/html" not in ct:
             return None
 
-        # Check X-Robots-Tag header
         x_robots = resp.headers.get("X-Robots-Tag")
         if x_robots:
             directives = parse_robots_header(x_robots)
             if directives.noindex:
                 return None
 
-        return resp.text
+        text = resp.text
+        if not text or not text.strip():
+            return self._fetch_with_playwright(url)
+
+        return text
 
     def _fetch_with_playwright(self, url: str) -> str | None:
         if not self.use_js:
             return None
+
+        browser = self._ensure_playwright_browser()
+        if browser is None:
+            return None
+
+        try:
+            pw_page = browser.new_page(user_agent=USER_AGENT)
+            try:
+                pw_page.goto(url, timeout=30000, wait_until="domcontentloaded")
+                return pw_page.content()
+            except Exception:
+                return None
+            finally:
+                pw_page.close()
+        except Exception:
+            return None
+
+    def _ensure_playwright_browser(self):
+        if self._playwright_browser is not None:
+            return self._playwright_browser
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
             return None
-
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page(user_agent=USER_AGENT)
-                try:
-                    page.goto(url, timeout=30000, wait_until="domcontentloaded")
-                    content = page.content()
-                except Exception:
-                    return None
-                finally:
-                    browser.close()
-                return content
+            self._playwright = sync_playwright()
+            pw = self._playwright.start()
+            self._playwright_browser = pw.chromium.launch(headless=True)
+            return self._playwright_browser
         except Exception:
             return None
+
+    def _close_playwright(self):
+        try:
+            if self._playwright_browser is not None:
+                self._playwright_browser.close()
+        except Exception:
+            pass
+        try:
+            if self._playwright is not None:
+                self._playwright.__exit__(None, None, None)
+        except Exception:
+            pass
+        self._playwright_browser = None
+        self._playwright = None
 
     # ------------------------------------------------------------------
     #  Link extraction
     # ------------------------------------------------------------------
-    def _extract_links(self, base_url: str, html: str) -> list[str]:
-        soup = BeautifulSoup(html, "html.parser")
+    def _extract_links(self, base_url: str, soup: BeautifulSoup) -> list[str]:
         links: list[str] = []
 
-        directives = self._check_robots_directives(html)
-        if directives.nofollow:
-            return links
-
         for a_tag in soup.find_all("a", href=True):
-            if not isinstance(a_tag, Tag):
+            href = a_tag.get("href")
+            if not href:
                 continue
-            href = a_tag["href"]
-            if isinstance(href, (list, tuple)):
-                href = href[0] if href else ""
             href = str(href)
 
-            # Resolve relative URLs
             full = urljoin(base_url, href)
             parsed = urlparse(full)
 
-            # Same domain only, skip fragments, skip non-HTTP(S)
             if parsed.netloc != urlparse(self._base).netloc:
                 continue
             if parsed.scheme not in ("http", "https"):
                 continue
             if parsed.fragment:
-                full = full.rstrip("#" + parsed.fragment)
+                full = full[:full.index("#")]
 
             links.append(full)
 
-        return list(dict.fromkeys(links))  # deduplicate, preserve order
-
-    # ------------------------------------------------------------------
-    #  Robots directives from HTML
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _check_robots_directives(html: str) -> RobotsDirectives:
-        soup = BeautifulSoup(html, "html.parser")
-        return parse_meta_robots(soup)
+        return list(dict.fromkeys(links))

@@ -26,12 +26,13 @@ def _assign_section(page: PageInfo) -> str:
 
     parts = [p for p in path.split("/") if p]
     top = _normalise(parts[0])
+    if top:
+        return top
 
     if page.h1:
-        h1_section = _normalise(page.h1)
-        return h1_section
+        return _normalise(page.h1)
 
-    return top or "Other"
+    return "Other"
 
 
 def _normalise(name: str) -> str:

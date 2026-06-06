@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Optional
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup, Tag
@@ -24,12 +25,6 @@ class PageInfo:
 class RobotsDirectives:
     noindex: bool = False
     nofollow: bool = False
-
-
-_X_ROBOTS_TAG_RE = re.compile(
-    r"(?:noindex|nofollow|index|follow|none|all|noarchive)",
-    re.IGNORECASE,
-)
 
 
 def parse_robots_header(header_value: str) -> RobotsDirectives:
@@ -61,8 +56,9 @@ def parse_meta_robots(soup: BeautifulSoup) -> RobotsDirectives:
     return d
 
 
-def extract_page_info(url: str, html: str, depth: int) -> PageInfo:
-    soup = BeautifulSoup(html, "html.parser")
+def extract_page_info(url: str, html: str, depth: int, soup: Optional[BeautifulSoup] = None) -> PageInfo:
+    if soup is None:
+        soup = BeautifulSoup(html, "html.parser")
     info = PageInfo(url=url, depth=depth, raw_html=html)
 
     title_tag = soup.find("title")
