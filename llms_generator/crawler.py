@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup, Tag
 
 from llms_generator.page_analyzer import (
     PageInfo,
+    RobotsDirectives,
     extract_page_info,
     parse_meta_robots,
     parse_robots_header,
@@ -62,7 +63,7 @@ class Crawler:
             self._pages.append(page)
 
             if depth < self.max_depth:
-                links = self._extract_links(url, page.full_text or "")
+                links = self._extract_links(url, page.raw_html)
                 for link in links:
                     if link not in self._visited:
                         self._visited.add(link)
@@ -190,8 +191,6 @@ class Crawler:
     #  Robots directives from HTML
     # ------------------------------------------------------------------
     @staticmethod
-    def _check_robots_directives(html: str) -> "RobotsDirectives":
-        from llms_generator.page_analyzer import RobotsDirectives
-
+    def _check_robots_directives(html: str) -> RobotsDirectives:
         soup = BeautifulSoup(html, "html.parser")
         return parse_meta_robots(soup)

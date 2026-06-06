@@ -17,6 +17,7 @@ class PageInfo:
     section: str = ""
     depth: int = 0
     full_text: str = ""
+    raw_html: str = ""
 
 
 @dataclass
@@ -62,7 +63,7 @@ def parse_meta_robots(soup: BeautifulSoup) -> RobotsDirectives:
 
 def extract_page_info(url: str, html: str, depth: int) -> PageInfo:
     soup = BeautifulSoup(html, "html.parser")
-    info = PageInfo(url=url, depth=depth)
+    info = PageInfo(url=url, depth=depth, raw_html=html)
 
     title_tag = soup.find("title")
     if title_tag and isinstance(title_tag, Tag):
