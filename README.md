@@ -2,29 +2,31 @@
 
 <p align="center">
   <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/v/llms-generator" alt="PyPI"></a>
+  <a href="https://llms-generator.readthedocs.io/"><img src="https://img.shields.io/badge/docs-Read%20the%20Docs-blue" alt="Docs"></a>
   <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/pyversions/llms-generator" alt="Python Versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
-  <a href="https://github.com/aouwalitshikkha/llms-generator"><img src="https://img.shields.io/github/stars/aouwalitshikkha/llms-generator" alt="GitHub Stars"></a>
 </p>
 
-**Crawl any website and generate `llms.txt`** — the AI-ready site map standard.
+**Crawl any website and generate `llms.txt`** - the AI-ready site map standard.
 
-`llms.txt` is a markdown file placed at a website's root (`/llms.txt`) that helps AI assistants like ChatGPT, Claude, and Perplexity understand your site's content structure. Think of it as *robots.txt for AI*.
+`llms.txt` is a Markdown file placed at your domain root (`/llms.txt`) that provides a curated overview of your most important pages for AI systems. It is designed for inference time (when users ask questions), not for training.
 
 This tool crawls your site, extracts page metadata, groups pages into logical sections, and outputs a spec-compliant `llms.txt` file.
+
+**Documentation:** https://llms-generator.readthedocs.io/
 
 ---
 
 ## Why llms.txt?
 
-AI systems struggle to navigate large, noisy websites. An `llms.txt` file gives them a curated map of your most important content — leading to:
+ChatGPT, Claude, and Gemini have small context windows. They cannot read your entire website with navigation, JavaScript, and ads. `llms.txt` gives them your essential pages in one request.
 
--   Accurate citations in AI-generated responses
--   Better brand representation in ChatGPT, Perplexity, Google AI Overviews
--   Less server load from AI crawlers wandering your site
--   Control over how AI systems reference your content
+- Accurate citations in AI-generated responses
+- Better brand representation in ChatGPT, Perplexity, Google AI Overviews
+- Less server load from AI crawlers wandering your site
+- Control over how AI systems reference your content
 
-The [llms.txt specification](https://llmstxt.org) was proposed by Jeremy Howard in 2024 and is actively supported by Perplexity, Anthropic, and other AI platforms.
+The [llms.txt specification](https://llmstxt.org) was proposed by Jeremy Howard (AnswerDotAI, September 2024). It coexists with `robots.txt` and `sitemap.xml` - each serves a different purpose.
 
 ---
 
@@ -49,7 +51,11 @@ playwright install chromium
 llms-gen https://example.com
 ```
 
-That's it. The tool crawls your site and creates `llms.txt` in the current directory.
+That creates `llms.txt` in the current folder. Add `--full` to also generate the full content version:
+
+```bash
+llms-gen https://example.com --full
+```
 
 ### Options
 
@@ -58,8 +64,8 @@ That's it. The tool crawls your site and creates `llms.txt` in the current direc
 | `URL` | required | Target website URL |
 | `--depth` | `2` | Maximum crawl depth |
 | `--output` | `llms.txt` | Output file path |
-| `--full` | `False` | Also generate `llms-full.txt` with full page content |
-| `--no-js` | `False` | Skip Playwright JavaScript rendering fallback |
+| `--full` | `false` | Also generate `llms-full.txt` with full page content |
+| `--no-js` | `false` | Skip Playwright JavaScript rendering fallback |
 | `--delay` | `1.0` | Seconds between requests (be polite) |
 
 ### Examples
@@ -84,35 +90,24 @@ llms-gen https://example.com --no-js --delay 0.5
 
 ### Per-page robot check
 
-Every page is checked against three layers before being included or followed:
+Every page is checked against three layers before being included:
 
-```
-robots.txt ──┬── disallowed? → skip
-             └── allowed? ──→ check HTTP X-Robots-Tag header
-                                     │
-                           noindex? ──→ skip
-                           nofollow? ──→ still analyze, don't follow links
-                                     │
-                           absent ──→ check <meta name="robots">
-                                     │
-                           noindex? ──→ skip
-                           nofollow? ──→ still analyze, don't follow links
-                                     │
-                           absent/index,follow ──→ analyze + follow links
-```
+1. **robots.txt** - Skips disallowed paths automatically
+2. **X-Robots-Tag** - Respects `noindex` and `nofollow` from HTTP headers
+3. **`<meta name="robots">`** - Respects page-level directives in the HTML
 
-Pages with `noindex` are **excluded from `llms.txt`**. Pages with `nofollow` are still analyzed for their content but their child links are not crawled.
+Pages with `noindex` are excluded from `llms.txt`. Pages with `nofollow` are still analyzed but their links are not crawled.
 
 ### Crawl strategy
 
-1. Parse `robots.txt` — respect `Disallow` and `Crawl-Delay` (gracefully handles missing or restricted robots.txt)
+1. Parse `robots.txt` - respects `Disallow` and `Crawl-Delay` (gracefully handles missing or restricted robots.txt)
 2. BFS from the start URL up to `--depth` levels
 3. For each page:
-    - Fetch with `requests` (handles most sites)
-    - Skip 4xx/5xx responses, non-HTML content, and `X-Robots-Tag: noindex`
-    - If content is empty (JS-rendered), fall back to Playwright headless browser
-    - Extract: `<title>`, `<h1>`, `<meta name="description">`, first meaningful paragraph, directory path
-    - Check `<meta name="robots">` — `noindex` excludes the page, `nofollow` prevents link crawling
+   - Fetch with `requests` (handles most sites)
+   - Skip 4xx/5xx responses, non-HTML content, and `X-Robots-Tag: noindex`
+   - If content is empty (JS-rendered), fall back to Playwright headless browser
+   - Extract: `<title>`, `<h1>`, `<meta name="description">`, first meaningful paragraph, directory path
+   - Check `<meta name="robots">` - `noindex` excludes the page, `nofollow` prevents link crawling
 4. Group pages into sections (directory-based, with H1 fallback)
 5. Assemble `llms.txt` per the spec
 
@@ -123,9 +118,9 @@ Pages with `noindex` are **excluded from `llms.txt`**. Pages with `nofollow` are
 Pages are grouped into `##` sections by their top-level directory path:
 
 ```
-/docs/getting-started   → ## Docs
-/blog/hello-world       → ## Blog
-/api/v1/users           → ## Api
+/docs/getting-started   -> ## Docs
+/blog/hello-world       -> ## Blog
+/api/v1/users           -> ## Api
 ```
 
 Pages without a clear directory path use their `<h1>` as the section name.
@@ -138,24 +133,19 @@ The generated `llms.txt` follows the [llmstxt.org](https://llmstxt.org) specific
 
 ```markdown
 # Example Site
-
 > A great example site with documentation and blog content.
 
-This file provides AI systems with a structured summary of this website.
-
 ## Docs
-
 - [Getting Started](https://example.com/docs/getting-started): How to get started with our platform.
 - [API Reference](https://example.com/docs/api): Complete API documentation.
 
 ## Blog
-
 - [Hello World](https://example.com/blog/hello): Our first blog post.
 ```
 
 ### llms-full.txt
 
-With `--full`, an expanded version is also generated that includes the full text content of each page inline — useful for providing complete context to LLMs in a single file.
+With `--full`, an expanded version is also generated that includes the full text content of each page inline - useful for providing complete context to LLMs in a single file.
 
 ---
 
