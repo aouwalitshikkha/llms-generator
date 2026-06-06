@@ -69,7 +69,8 @@ class Crawler:
                 self._pages.append(page)
 
                 if follow and depth < self.max_depth:
-                    links = self._extract_links(url, soup)
+                    self._visited.add(self._url_key(page.url))
+                    links = self._extract_links(page.url, soup)
                     for link in links:
                         key = self._url_key(link)
                         if key not in self._visited:
@@ -109,7 +110,7 @@ class Crawler:
     #  Fetch + analyze
     # ------------------------------------------------------------------
     def _fetch_and_analyze(self, url: str, depth: int) -> tuple[PageInfo, BeautifulSoup, bool] | None:
-        html, header_nofollow = self._fetch(url)
+        html, final_url, header_nofollow = self._fetch(url)
         if html is None:
             return None
 
@@ -119,37 +120,39 @@ class Crawler:
         if directives.noindex:
             return None
 
-        page = extract_page_info(url, html, depth, soup=soup)
+        page = extract_page_info(final_url, html, depth, soup=soup)
         follow = not (directives.nofollow or header_nofollow)
         return page, soup, follow
 
-    def _fetch(self, url: str) -> tuple[str | None, bool]:
+    def _fetch(self, url: str) -> tuple[str | None, str, bool]:
         try:
             resp = self._session.get(url, timeout=30)
+            final_url = resp.url
         except requests.RequestException:
-            return self._fetch_with_playwright(url)
+            html, _ = self._fetch_with_playwright(url)
+            return (html, url, False)
 
         if resp.status_code >= 400:
-            return (None, False)
+            return (None, url, False)
 
         ct = (resp.headers.get("Content-Type") or "").lower()
         if "text/html" not in ct:
-            return (None, False)
+            return (None, url, False)
 
         header_nofollow = False
         x_robots = resp.headers.get("X-Robots-Tag")
         if x_robots:
             directives = parse_robots_header(x_robots)
             if directives.noindex:
-                return (None, False)
+                return (None, url, False)
             header_nofollow = directives.nofollow
 
         text = resp.text
         if not text or not text.strip():
             html, _ = self._fetch_with_playwright(url)
-            return (html, header_nofollow)
+            return (html, final_url, header_nofollow)
 
-        return (text, header_nofollow)
+        return (text, final_url, header_nofollow)
 
     def _fetch_with_playwright(self, url: str) -> tuple[str | None, bool]:
         if not self.use_js:
