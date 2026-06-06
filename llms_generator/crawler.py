@@ -9,6 +9,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
+from llms_generator._version import __version__
 from llms_generator.page_analyzer import (
     PageInfo,
     extract_page_info,
@@ -16,7 +17,7 @@ from llms_generator.page_analyzer import (
     parse_robots_header,
 )
 
-USER_AGENT = "llms-generator/0.1.0"
+USER_AGENT = f"llms-generator/{__version__}"
 
 
 class Crawler:
@@ -76,6 +77,7 @@ class Crawler:
                 time.sleep(self.delay)
         finally:
             self._close_playwright()
+            self._session.close()
 
         return self._pages
 
@@ -105,7 +107,7 @@ class Crawler:
     #  Fetch + analyze
     # ------------------------------------------------------------------
     def _fetch_and_analyze(self, url: str, depth: int) -> tuple[PageInfo, BeautifulSoup, bool] | None:
-        html = self._fetch(url)
+        html, header_nofollow = self._fetch(url)
         if html is None:
             return None
 
@@ -116,52 +118,56 @@ class Crawler:
             return None
 
         page = extract_page_info(url, html, depth, soup=soup)
-        return page, soup, not directives.nofollow
+        follow = not (directives.nofollow or header_nofollow)
+        return page, soup, follow
 
-    def _fetch(self, url: str) -> str | None:
+    def _fetch(self, url: str) -> tuple[str | None, bool]:
         try:
             resp = self._session.get(url, timeout=30)
         except requests.RequestException:
             return self._fetch_with_playwright(url)
 
         if resp.status_code >= 400:
-            return None
+            return (None, False)
 
         ct = (resp.headers.get("Content-Type") or "").lower()
         if "text/html" not in ct:
-            return None
+            return (None, False)
 
+        header_nofollow = False
         x_robots = resp.headers.get("X-Robots-Tag")
         if x_robots:
             directives = parse_robots_header(x_robots)
             if directives.noindex:
-                return None
+                return (None, False)
+            header_nofollow = directives.nofollow
 
         text = resp.text
         if not text or not text.strip():
-            return self._fetch_with_playwright(url)
+            html, _ = self._fetch_with_playwright(url)
+            return (html, header_nofollow)
 
-        return text
+        return (text, header_nofollow)
 
-    def _fetch_with_playwright(self, url: str) -> str | None:
+    def _fetch_with_playwright(self, url: str) -> tuple[str | None, bool]:
         if not self.use_js:
-            return None
+            return (None, False)
 
         browser = self._ensure_playwright_browser()
         if browser is None:
-            return None
+            return (None, False)
 
         try:
             pw_page = browser.new_page(user_agent=USER_AGENT)
             try:
                 pw_page.goto(url, timeout=30000, wait_until="domcontentloaded")
-                return pw_page.content()
+                return (pw_page.content(), False)
             except Exception:
-                return None
+                return (None, False)
             finally:
                 pw_page.close()
         except Exception:
-            return None
+            return (None, False)
 
     def _ensure_playwright_browser(self):
         if self._playwright_browser is not None:
@@ -176,6 +182,7 @@ class Crawler:
             self._playwright_browser = pw.chromium.launch(headless=True)
             return self._playwright_browser
         except Exception:
+            self._close_playwright()
             return None
 
     def _close_playwright(self):

@@ -161,6 +161,13 @@ With `--full`, an expanded version is also generated that includes the full text
 
 ## Changelog
 
+### v0.1.2 (2026-06-06)
+
+- **Fixed:** `USER_AGENT` now reads from `__version__` — stays in sync automatically
+- **Fixed:** `X-Robots-Tag: nofollow` is now respected — header-level and meta-level directives are merged
+- **Fixed:** Playwright browser instance properly cleaned up on launch failure (resource leak)
+- **Fixed:** `requests.Session` is now explicitly closed after crawl
+
 ### v0.1.1 (2026-06-06)
 
 - **Fixed:** robots.txt returning 403/blocked no longer kills the entire crawl — gracefully falls back to allow-all
