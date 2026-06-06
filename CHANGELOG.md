@@ -1,3 +1,9 @@
+﻿# Changelog
+
+## v0.1.5 (2026-06-06)
+
+- **Added:** Changelog URL in pyproject.toml so the changelog link appears on PyPI
+
 # Changelog
 
 ## v0.1.4 (2026-06-06)

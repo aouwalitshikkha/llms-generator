@@ -10,3 +10,4 @@ env/
 *.log
 llms.txt
 llms-full.txt
+docs/_build/

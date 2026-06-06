@@ -34,6 +34,7 @@ all = ["llms-generator[js]"]
 [project.urls]
 Homepage = "https://abdulaouwal.com/"
 Repository = "https://github.com/aouwalitshikkha/llms-generator"
+Changelog = "https://github.com/aouwalitshikkha/llms-generator/blob/main/CHANGELOG.md"
 
 [project.scripts]
 llms-gen = "llms_generator.cli:main"
