@@ -1,9 +1,5 @@
 # llms-generator
 
-[![PyPI](https://img.shields.io/pypi/v/llms-generator)](https://pypi.org/project/llms-generator/)
-[![Python](https://img.shields.io/pypi/pyversions/llms-generator)](https://pypi.org/project/llms-generator/)
-[![License](https://img.shields.io/github/license/aouwalitshikkha/llms-generator)](LICENSE)
-
 **Crawl any website and generate `llms.txt`** — the AI-ready site map standard.
 
 `llms.txt` is a markdown file placed at a website's root (`/llms.txt`) that helps AI assistants like ChatGPT, Claude, and Perplexity understand your site's content structure. Think of it as *robots.txt for AI*.
