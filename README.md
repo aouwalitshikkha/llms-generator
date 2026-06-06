@@ -7,11 +7,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
 </p>
 
-**Crawl any website and generate `llms.txt`** - the AI-ready site map standard.
-
-`llms.txt` is a Markdown file placed at your domain root (`/llms.txt`) that provides a curated overview of your most important pages for AI systems. It is designed for inference time (when users ask questions), not for training.
-
-This tool crawls your site, extracts page metadata, groups pages into logical sections, and outputs a spec-compliant `llms.txt` file.
+Crawl any website and generate `llms.txt`. A Markdown file at your domain root that tells AI systems which pages to read.
 
 **Documentation:** https://llms-generator.readthedocs.io/
 
@@ -19,14 +15,9 @@ This tool crawls your site, extracts page metadata, groups pages into logical se
 
 ## Why llms.txt?
 
-ChatGPT, Claude, and Gemini have small context windows. They cannot read your entire website with navigation, JavaScript, and ads. `llms.txt` gives them your essential pages in one request.
+ChatGPT, Claude, and Gemini have small context windows. They cannot read your entire website. `llms.txt` gives them your essential pages in one request.
 
-- Accurate citations in AI-generated responses
-- Better brand representation in ChatGPT, Perplexity, Google AI Overviews
-- Less server load from AI crawlers wandering your site
-- Control over how AI systems reference your content
-
-The [llms.txt specification](https://llmstxt.org) was proposed by Jeremy Howard (AnswerDotAI, September 2024). It coexists with `robots.txt` and `sitemap.xml` - each serves a different purpose.
+The [llms.txt specification](https://llmstxt.org) was proposed by Jeremy Howard in September 2024. It works alongside `robots.txt` and `sitemap.xml`. Each serves a different purpose.
 
 ---
 
@@ -36,7 +27,7 @@ The [llms.txt specification](https://llmstxt.org) was proposed by Jeremy Howard 
 pip install llms-generator
 ```
 
-For JavaScript-heavy sites (optional):
+For JavaScript-heavy sites:
 
 ```bash
 pip install llms-generator[js]
@@ -51,11 +42,7 @@ playwright install chromium
 llms-gen https://example.com
 ```
 
-That creates `llms.txt` in the current folder. Add `--full` to also generate the full content version:
-
-```bash
-llms-gen https://example.com --full
-```
+This creates `llms.txt` in your current folder. Add `--full` to also generate the full content version.
 
 ### Options
 
@@ -64,23 +51,16 @@ llms-gen https://example.com --full
 | `URL` | required | Target website URL |
 | `--depth` | `2` | Maximum crawl depth |
 | `--output` | `llms.txt` | Output file path |
-| `--full` | `false` | Also generate `llms-full.txt` with full page content |
-| `--no-js` | `false` | Skip Playwright JavaScript rendering fallback |
-| `--delay` | `1.0` | Seconds between requests (be polite) |
+| `--full` | `false` | Also generate `llms-full.txt` |
+| `--no-js` | `false` | Skip Playwright JS fallback |
+| `--delay` | `1.0` | Seconds between requests |
 
 ### Examples
 
 ```bash
-# Basic crawl (2 levels deep)
 llms-gen https://example.com
-
-# Crawl deeper, output to custom path
-llms-gen https://docs.example.com --depth 3 --output site-llms.txt
-
-# Generate both standard and full versions
+llms-gen https://example.com --depth 3 --output site-llms.txt
 llms-gen https://example.com --full
-
-# Fast crawl without JS rendering
 llms-gen https://example.com --no-js --delay 0.5
 ```
 
@@ -88,34 +68,29 @@ llms-gen https://example.com --no-js --delay 0.5
 
 ## How it works
 
-### Per-page robot check
+### Robot checks
 
-Every page is checked against three layers before being included:
+Every page passes three checks:
 
-1. **robots.txt** - Skips disallowed paths automatically
-2. **X-Robots-Tag** - Respects `noindex` and `nofollow` from HTTP headers
-3. **`<meta name="robots">`** - Respects page-level directives in the HTML
+1. **robots.txt** - skips disallowed paths
+2. **X-Robots-Tag** - respects `noindex` and `nofollow` from HTTP headers
+3. **`<meta name="robots">`** - respects page-level directives
 
-Pages with `noindex` are excluded from `llms.txt`. Pages with `nofollow` are still analyzed but their links are not crawled.
+Pages marked `noindex` are excluded. Pages marked `nofollow` are analyzed but their links are not crawled.
 
-### Crawl strategy
+### Crawl steps
 
-1. Parse `robots.txt` - respects `Disallow` and `Crawl-Delay` (gracefully handles missing or restricted robots.txt)
-2. BFS from the start URL up to `--depth` levels
+1. Parse `robots.txt`. Handles missing or restricted files.
+2. BFS from the start URL up to `--depth` levels.
 3. For each page:
-   - Fetch with `requests` (handles most sites)
-   - Skip 4xx/5xx responses, non-HTML content, and `X-Robots-Tag: noindex`
-   - If content is empty (JS-rendered), fall back to Playwright headless browser
-   - Extract: `<title>`, `<h1>`, `<meta name="description">`, first meaningful paragraph, directory path
-   - Check `<meta name="robots">` - `noindex` excludes the page, `nofollow` prevents link crawling
-4. Group pages into sections (directory-based, with H1 fallback)
-5. Assemble `llms.txt` per the spec
-
-> **Performance note:** Playwright browser is launched once and reused across all JS fallback fetches, then cleaned up when the crawl completes.
+   - Fetch with `requests`
+   - Skip 4xx/5xx responses and non-HTML content
+   - Fall back to Playwright if content is empty (JS-rendered sites)
+   - Extract title, h1, meta description, first paragraph, directory path
+4. Group pages by top-level directory path
+5. Write `llms.txt`
 
 ### Section grouping
-
-Pages are grouped into `##` sections by their top-level directory path:
 
 ```
 /docs/getting-started   -> ## Docs
@@ -123,11 +98,11 @@ Pages are grouped into `##` sections by their top-level directory path:
 /api/v1/users           -> ## Api
 ```
 
-Pages without a clear directory path use their `<h1>` as the section name.
+Pages without a directory path use their `<h1>` as the section name.
 
 ---
 
-## Output format
+## Output
 
 The generated `llms.txt` follows the [llmstxt.org](https://llmstxt.org) specification:
 
@@ -136,16 +111,14 @@ The generated `llms.txt` follows the [llmstxt.org](https://llmstxt.org) specific
 > A great example site with documentation and blog content.
 
 ## Docs
-- [Getting Started](https://example.com/docs/getting-started): How to get started with our platform.
+- [Getting Started](https://example.com/docs/getting-started): How to get started.
 - [API Reference](https://example.com/docs/api): Complete API documentation.
 
 ## Blog
 - [Hello World](https://example.com/blog/hello): Our first blog post.
 ```
 
-### llms-full.txt
-
-With `--full`, an expanded version is also generated that includes the full text content of each page inline - useful for providing complete context to LLMs in a single file.
+With `--full`, the tool also writes `llms-full.txt` with every page's full text under section headings.
 
 ---
 
