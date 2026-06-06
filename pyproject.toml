@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llms-generator"
 dynamic = ["version"]
-description = "Crawl any website and generate llms.txt — the AI-ready site map standard."
+description = "Crawl any website and generate llms.txt - the AI-ready site map standard."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
