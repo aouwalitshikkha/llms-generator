@@ -48,8 +48,9 @@ class Crawler:
     def run(self) -> list[PageInfo]:
         self._load_robots_txt()
         queue: deque[tuple[str, int]] = deque()
-        queue.append((self.start_url, 0))
-        self._visited.add(self.start_url)
+        start = self._normalize_url(self.start_url)
+        queue.append((start, 0))
+        self._visited.add(self._url_key(start))
 
         try:
             while queue:
@@ -70,8 +71,9 @@ class Crawler:
                 if follow and depth < self.max_depth:
                     links = self._extract_links(url, soup)
                     for link in links:
-                        if link not in self._visited:
-                            self._visited.add(link)
+                        key = self._url_key(link)
+                        if key not in self._visited:
+                            self._visited.add(key)
                             queue.append((link, depth + 1))
 
                 time.sleep(self.delay)
@@ -200,10 +202,30 @@ class Crawler:
         self._playwright = None
 
     # ------------------------------------------------------------------
+    #  URL normalization
+    # ------------------------------------------------------------------
+    def _normalize_url(self, url: str) -> str:
+        parsed = urlparse(url)
+        base_parsed = urlparse(self._base)
+        if parsed.scheme in ("http", "https") and base_parsed.scheme in ("http", "https"):
+            parsed = parsed._replace(scheme=base_parsed.scheme)
+        return parsed.geturl()
+
+    def _url_key(self, url: str) -> str:
+        url = self._normalize_url(url)
+        parsed = urlparse(url)
+        if parsed.path in ("", "/"):
+            parsed = parsed._replace(path="")
+        elif parsed.path.endswith("/"):
+            parsed = parsed._replace(path=parsed.path.rstrip("/"))
+        return parsed.geturl()
+
+    # ------------------------------------------------------------------
     #  Link extraction
     # ------------------------------------------------------------------
     def _extract_links(self, base_url: str, soup: BeautifulSoup) -> list[str]:
         links: list[str] = []
+        base_parsed = urlparse(self._base)
 
         for a_tag in soup.find_all("a", href=True):
             href = a_tag.get("href")
@@ -214,13 +236,13 @@ class Crawler:
             full = urljoin(base_url, href)
             parsed = urlparse(full)
 
-            if parsed.netloc != urlparse(self._base).netloc:
+            if parsed.netloc != base_parsed.netloc:
                 continue
             if parsed.scheme not in ("http", "https"):
                 continue
             if parsed.fragment:
                 full = full[:full.index("#")]
 
-            links.append(full)
+            links.append(self._normalize_url(full))
 
         return list(dict.fromkeys(links))

@@ -1,4 +1,4 @@
-# llms-generator
+﻿# llms-generator
 
 <p align="center">
   <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/v/llms-generator" alt="PyPI"></a>
@@ -161,6 +161,10 @@ With `--full`, an expanded version is also generated that includes the full text
 
 ## Changelog
 
+
+### v0.1.3 (2026-06-06)
+
+- **Fixed:** Duplicate page entries in llms.txt caused by trailing-slash variants and http/https scheme variants - URLs are now normalized before deduplication
 ### v0.1.2 (2026-06-06)
 
 - **Fixed:** `USER_AGENT` now reads from `__version__` — stays in sync automatically
