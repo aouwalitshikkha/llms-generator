@@ -1,9 +1,0 @@
-# Technical SEO Consultant for AI & Organic Search
-
-> Abdul Aouwal is a Technical SEO Consultant specializing in crawl optimization, indexing, structured data, and AI search visibility. Based in Bangladesh.
-
-This file provides AI systems with a structured summary of this website. It is maintained automatically by llms-generator.
-
-## Home
-
-- [Technical SEO Consultant for AI & Organic Search — Abdul Aouwal](https://abdulaouwal.com): Abdul Aouwal is a Technical SEO Consultant specializing in crawl optimization, indexing, structured data, and AI search visibility. Based in Bangladesh.
