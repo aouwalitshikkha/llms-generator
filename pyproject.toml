@@ -32,7 +32,7 @@ js = ["playwright>=1.40"]
 all = ["llms-generator[js]"]
 
 [project.urls]
-Homepage = "https://abdulaouwal.com/"
+Homepage = "https://abdulaouwal.com/project/llms-generator/"
 Repository = "https://github.com/aouwalitshikkha/llms-generator"
 Changelog = "https://github.com/aouwalitshikkha/llms-generator/blob/main/CHANGELOG.md"
 Documentation = "https://llms-generator.readthedocs.io/"

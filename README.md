@@ -9,6 +9,7 @@
 
 Crawl any website and generate `llms.txt`. A Markdown file at your domain root that tells AI systems which pages to read.
 
+**Homepage:** https://abdulaouwal.com/project/llms-generator/
 **Documentation:** https://llms-generator.readthedocs.io/
 
 ---
