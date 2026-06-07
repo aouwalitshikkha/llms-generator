@@ -1,4 +1,14 @@
-﻿# Changelog
+# Changelog
+
+## v0.1.9 (2026-06-07)
+
+- **Added:** Project homepage link to `pyproject.toml` and `README.md` — https://abdulaouwal.com/project/llms-generator/
+- **Changed:** `Development Status` classifier from `3 - Alpha` to `4 - Beta`
+- **Changed:** Bumped version from 0.1.8 to 0.1.9
+
+## v0.1.7 (2026-06-06)
+
+(This release was published directly to PyPI without a formal changelog entry.)
 
 ## v0.1.6 (2026-06-06)
 
