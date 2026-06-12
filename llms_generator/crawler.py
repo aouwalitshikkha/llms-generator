@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import time
 import urllib.robotparser
 from collections import deque
@@ -44,6 +45,7 @@ class Crawler:
 
         self._playwright = None
         self._playwright_browser = None
+        self._last_response_time: float = 0.0
 
     def run(self) -> list[PageInfo]:
         self._load_robots_txt()
@@ -77,7 +79,7 @@ class Crawler:
                             self._visited.add(key)
                             queue.append((link, depth + 1))
 
-                time.sleep(self.delay)
+                self._adaptive_sleep()
         finally:
             self._close_playwright()
             self._session.close()
@@ -126,7 +128,9 @@ class Crawler:
 
     def _fetch(self, url: str) -> tuple[str | None, str, bool]:
         try:
+            start = time.monotonic()
             resp = self._session.get(url, timeout=30)
+            self._last_response_time = time.monotonic() - start
             final_url = resp.url
         except requests.RequestException:
             html, _ = self._fetch_with_playwright(url)
@@ -153,6 +157,15 @@ class Crawler:
             return (html, final_url, header_nofollow)
 
         return (text, final_url, header_nofollow)
+
+    def _adaptive_sleep(self) -> None:
+        base = max(self.delay, 0.1)
+        if self._last_response_time > 0:
+            excess = self._last_response_time - base
+            if excess > 0:
+                base += min(excess, base * 2)
+        jitter = random.uniform(-0.25, 0.25) * base
+        time.sleep(max(0.1, base + jitter))
 
     def _fetch_with_playwright(self, url: str) -> tuple[str | None, bool]:
         if not self.use_js:

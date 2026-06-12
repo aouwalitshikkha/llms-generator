@@ -37,7 +37,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--delay",
         type=float,
         default=1.0,
-        help="Seconds between requests (default: 1.0)",
+        help="Base seconds between requests; adapts based on response time (default: 1.0)",
     )
     return parser.parse_args(argv)
 

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "llms-generator"
 copyright = "2026, aouwalitshikkha"
 author = "aouwalitshikkha"
-release = "0.1.11"
+release = "0.2.0"
 
 extensions = [
     "myst_parser",

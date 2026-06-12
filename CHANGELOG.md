@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.0 (2026-06-12)
+
+- **Added:** Adaptive rate limiting — delay now adjusts based on server response time with random jitter to avoid pattern detection
+- **Changed:** `--delay` is now a base minimum; actual wait time scales up when the server responds slowly
+
 ## v0.1.11 (2026-06-12)
 
 - **Fixed:** `h1_tag` and `p_tag` now guarded with `isinstance(tag, Tag)` to prevent `AttributeError` from `NavigableString` matches in `page_analyzer.py`
