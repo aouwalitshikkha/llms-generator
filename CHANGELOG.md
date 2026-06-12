@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.11 (2026-06-12)
+
+- **Fixed:** `h1_tag` and `p_tag` now guarded with `isinstance(tag, Tag)` to prevent `AttributeError` from `NavigableString` matches in `page_analyzer.py`
+
 ## v0.1.10 (2026-06-07)
 
 - **Fixed:** `Development Status` classifier set to `4 - Beta` (was `3 - Alpha`)

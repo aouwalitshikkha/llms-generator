@@ -66,7 +66,7 @@ def extract_page_info(url: str, html: str, depth: int, soup: Optional[BeautifulS
         info.title = title_tag.get_text(strip=True)
 
     h1_tag = soup.find("h1")
-    if h1_tag:
+    if h1_tag and isinstance(h1_tag, Tag):
         info.h1 = h1_tag.get_text(strip=True)
 
     meta_desc = soup.find("meta", attrs={"name": re.compile(r"^description$", re.I)})
@@ -76,7 +76,7 @@ def extract_page_info(url: str, html: str, depth: int, soup: Optional[BeautifulS
     info.summary = info.description or info.h1 or info.title
 
     p_tag = soup.find("p")
-    if p_tag:
+    if p_tag and isinstance(p_tag, Tag):
         text = p_tag.get_text(strip=True)
         if len(text) > 20:
             info.full_text = text
