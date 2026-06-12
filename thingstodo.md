@@ -4,6 +4,7 @@
 
 - [x] `h1_tag` and `p_tag` guarded with `isinstance(tag, Tag)` before `.get_text()`
 - [x] Adaptive rate limiting with jitter (`crawler.py:_adaptive_sleep`)
+- [x] Removed `PageInfo.raw_html` — stored but never used
 - [x] Created `AGENTS.md` with commands, layout, publishing flow, gotchas, dependencies
 
 ## High Priority

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1 (2026-06-12)
+
+- **Removed:** `PageInfo.raw_html` field — stored but never read
+
 ## v0.2.0 (2026-06-12)
 
 - **Added:** Adaptive rate limiting — delay now adjusts based on server response time with random jitter to avoid pattern detection

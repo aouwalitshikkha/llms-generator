@@ -31,7 +31,6 @@ Release flow: bump _version.py -> docs/conf.py -> CHANGELOG.md -> commit -> tag 
 
 - Path `D:\Tools\_In_Progress\llms text generator` has underscores and parens - some tools break on it. Use `-LiteralPath` and `--git-dir`/`--work-tree` when needed.
 - `page_analyzer.py` section inference partially duplicates `section_grouper.py` - prefer the latter for grouping.
-- `PageInfo.raw_html` stored but never read.
 - `h1_tag` and `p_tag` need `isinstance(tag, Tag)` guard before `.get_text()`.
 
 ## Dependencies
