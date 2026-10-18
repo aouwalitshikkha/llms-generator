@@ -8,11 +8,11 @@
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
 </p>
 
-Crawl any website and generate `llms.txt` - the AI-ready site map standard.
+Crawl any website and generate `llms.txt` - the AI-ready site map standard.<br>
 Respects robots.txt, groups pages by section, and outputs spec-compliant files.
 
-**Homepage:** https://abdulaouwal.com/project/llms-generator/
-**Documentation:** https://llms-generator.readthedocs.io/
+**Homepage:** https://abdulaouwal.com/project/llms-generator/<br>
+**Documentation:** https://llms-generator.readthedocs.io/<br>
 **Author:** Abdul Aouwal - Technical SEO Consultant
 
 ---
