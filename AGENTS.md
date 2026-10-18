@@ -58,6 +58,16 @@ Two GitHub Actions workflows:
   trusted publisher (owner `aouwalitshikkha`, repo `llms-generator`, workflow
   `release.yml`, no environment).
 
+Docs (Read the Docs):
+
+- Docs build from `main` via `.readthedocs.yaml`; RTD version `latest` = `main`
+  branch, `stable` = latest release tag (repoint it on each release).
+- Rebuilds are **webhook-driven**: RTD's GitHub incoming webhook
+  (`app.readthedocs.org/api/v2/webhook/...`) must be active on the repo with the
+  matching secret. If docs look stale, check the webhook delivery returns **200**
+  (`gh api repos/aouwalitshikkha/llms-generator/hooks/<id>/deliveries`) and
+  rebuild `latest` manually in the RTD dashboard as a fallback.
+
 Release flow:
 1. Bump `llms_generator/_version.py`, `docs/conf.py` `release`, `CHANGELOG.md`,
    `docs/changelog.md`.

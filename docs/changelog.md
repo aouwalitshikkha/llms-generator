@@ -18,6 +18,15 @@
 - **Changed:** Tracking query parameters stripped; default ports normalized; single OIDC publish workflow on `v*` tags.
 - **Fixed:** Per-link `nofollow`/`ugc`/`sponsored` skipped; off-domain redirects skipped; transient errors retried with `Retry-After`; content sniffing and `apparent_encoding` fallback; robots `crawl-delay` honored.
 
+## v0.2.1 (2026-06-12)
+
+- **Removed:** `PageInfo.raw_html` field — stored but never read
+
+## v0.2.0 (2026-06-12)
+
+- **Added:** Adaptive rate limiting — delay now adjusts based on server response time with random jitter to avoid pattern detection
+- **Changed:** `--delay` is now a base minimum; actual wait time scales up when the server responds slowly
+
 ## v0.1.10 (2026-06-07)
 
 - **Fixed:** `Development Status` classifier set to `4 - Beta` (was `3 - Alpha`)
