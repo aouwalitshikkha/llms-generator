@@ -9,7 +9,8 @@ description = "Crawl any website and generate llms.txt - the AI-ready site map s
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{name = "aouwalitshikkha"}]
+authors = [{name = "Abdul Aouwal"}]
+maintainers = [{name = "Abdul Aouwal"}]
 keywords = ["llms.txt", "crawler", "seo", "ai", "llm"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -39,6 +40,7 @@ all = ["llms-generator[js]"]
 
 [project.urls]
 Homepage = "https://abdulaouwal.com/project/llms-generator/"
+Author = "https://abdulaouwal.com/"
 Repository = "https://github.com/aouwalitshikkha/llms-generator"
 Changelog = "https://github.com/aouwalitshikkha/llms-generator/blob/main/CHANGELOG.md"
 Documentation = "https://llms-generator.readthedocs.io/"

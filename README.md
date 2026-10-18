@@ -8,10 +8,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
 </p>
 
-Crawl any website and generate `llms.txt`. A Markdown file at your domain root that tells AI systems which pages to read.
+Crawl any website and generate `llms.txt` - the AI-ready site map standard.
+Respects robots.txt, groups pages by section, and outputs spec-compliant files.
 
 **Homepage:** https://abdulaouwal.com/project/llms-generator/
 **Documentation:** https://llms-generator.readthedocs.io/
+**Author:** Abdul Aouwal - Technical SEO Consultant
 
 ---
 
@@ -132,6 +134,16 @@ The generated `llms.txt` follows the [llmstxt.org](https://llmstxt.org) specific
 ```
 
 With `--full`, the tool also writes `llms-full.txt` with every page's full text under section headings.
+
+---
+
+## About the author
+
+**Abdul Aouwal** is a Technical SEO Consultant for indexing, crawl, and AI visibility. He builds tools like `llms-generator` so websites are easier for search engines and AI systems to read.
+
+- Website: https://abdulaouwal.com/
+- LinkedIn: https://www.linkedin.com/in/aouwalitshikkha/
+- GitHub: https://github.com/aouwalitshikkha
 
 ---
 
