@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2 (2026-10-18)
+
+- **Fixed:** README header block now uses hard line breaks so the two-line description and the Homepage/Documentation/Author lines render on separate lines on GitHub and PyPI.
+
 ## v0.3.1 (2026-10-18)
 
 - **Changed:** PyPI author/maintainer set to "Abdul Aouwal" (Technical SEO Consultant) and an `Author` project URL added.
