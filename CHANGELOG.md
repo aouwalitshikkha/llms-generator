@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.3.0 (2026-10-18)
+
+- **Added:** `## Optional` section support — secondary pages (privacy, terms, cookies, legal, tags, authors, archives, etc.) are grouped into a trailing `## Optional` section per the llms.txt spec. Add more via `--optional-paths`.
+- **Added:** `--prefer-markdown` — link to a page's markdown alternate (`rel="alternate" type="text/markdown"`) when advertised.
+- **Added:** `--check` — validate the generated `llms.txt` against the spec and exit non-zero on problems.
+- **Added:** `--timeout` and `--max-pages` options.
+- **Added:** `--version` and `-v/--verbose` flags; crawl progress is now reported through `logging`.
+- **Added:** `llms_generator.validate.validate_llms_txt()` for programmatic validation.
+- **Added:** public API exports (`Crawler`, `PageInfo`, `generate_llms_txt`, `group_pages`, `validate_llms_txt`) from `llms_generator`.
+- **Added:** `py.typed` marker; project now ships type information.
+- **Added:** CI workflow (Python 3.10–3.13: ruff + pytest). Publishing consolidated to a single OIDC (trusted publishing) workflow triggered by `v*` tags.
+- **Changed:** Improved `--full` text extraction — prefers `<article>`, `<main>`, `[role="main"]` and strips nav/header/footer/aside/script boilerplate.
+- **Changed:** Site name now prefers `og:site_name`.
+- **Changed:** Redundant `: description` notes are omitted when they duplicate the link text.
+- **Changed:** Tracking query parameters (`utm_*`, `fbclid`, `gclid`, `ref`, …) are stripped and remaining params sorted, preventing duplicate crawls.
+- **Changed:** Default ports (`:80`/`:443`) are normalized.
+- **Fixed:** Per-link `rel="nofollow"`, `rel="ugc"`, and `rel="sponsored"` links are no longer followed.
+- **Fixed:** Off-domain redirects no longer add foreign pages.
+- **Fixed:** Transient failures (429/5xx/timeouts) are retried with `Retry-After` backoff.
+- **Fixed:** Pages are fetched even when the server omits a `Content-Type` header (body sniffing), and character encoding falls back to `apparent_encoding`.
+- **Fixed:** `robots.txt` is respected via a fixed `llms-generator` user-agent token; `crawl-delay` is honored.
+- **Fixed:** `--full` output path uses `Path.with_stem` instead of a fragile string `replace`.
+- **Removed:** Duplicate section-inference logic (now owned by `section_grouper`); token-based `publish.yml` workflow.
+
 ## v0.2.1 (2026-06-12)
 
 - **Removed:** `PageInfo.raw_html` field — stored but never read

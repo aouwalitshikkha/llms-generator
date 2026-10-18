@@ -29,6 +29,12 @@ dependencies = [
 
 [project.optional-dependencies]
 js = ["playwright>=1.40"]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "responses>=0.25",
+]
 all = ["llms-generator[js]"]
 
 [project.urls]
@@ -48,3 +54,20 @@ include = ["llms_generator*"]
 
 [tool.setuptools.package-data]
 llms_generator = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+files = ["llms_generator"]

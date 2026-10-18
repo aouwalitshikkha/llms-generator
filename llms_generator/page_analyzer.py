@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Optional
-from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup, Tag
+
+_MAX_FULL_TEXT = 2000
+
+_BOILERPLATE_TAGS = ("nav", "header", "footer", "aside", "script", "style", "noscript", "form", "template")
 
 
 @dataclass
@@ -18,6 +20,7 @@ class PageInfo:
     section: str = ""
     depth: int = 0
     full_text: str = ""
+    site_name: str = ""
 
 
 @dataclass
@@ -44,7 +47,7 @@ def parse_meta_robots(soup: BeautifulSoup) -> RobotsDirectives:
     meta = soup.find("meta", attrs={"name": re.compile(r"^robots$", re.I)})
     if not meta or not isinstance(meta, Tag):
         return d
-    content = (meta.get("content") or "").lower()
+    content = str(meta.get("content") or "").lower()
     if "none" in content:
         d.noindex = True
         d.nofollow = True
@@ -55,7 +58,7 @@ def parse_meta_robots(soup: BeautifulSoup) -> RobotsDirectives:
     return d
 
 
-def extract_page_info(url: str, html: str, depth: int, soup: Optional[BeautifulSoup] = None) -> PageInfo:
+def extract_page_info(url: str, html: str, depth: int, soup: BeautifulSoup | None = None) -> PageInfo:
     if soup is None:
         soup = BeautifulSoup(html, "html.parser")
     info = PageInfo(url=url, depth=depth)
@@ -70,36 +73,37 @@ def extract_page_info(url: str, html: str, depth: int, soup: Optional[BeautifulS
 
     meta_desc = soup.find("meta", attrs={"name": re.compile(r"^description$", re.I)})
     if meta_desc and isinstance(meta_desc, Tag):
-        info.description = (meta_desc.get("content") or "").strip()
+        info.description = str(meta_desc.get("content") or "").strip()
 
     info.summary = info.description or info.h1 or info.title
-
-    p_tag = soup.find("p")
-    if p_tag and isinstance(p_tag, Tag):
-        text = p_tag.get_text(strip=True)
-        if len(text) > 20:
-            info.full_text = text
-        else:
-            info.full_text = _find_first_meaningful_text(soup)
-
-    info.section = _infer_section(url, info.h1)
+    info.site_name = _extract_site_name(soup)
+    info.full_text = _extract_main_text(soup)
     return info
 
 
-def _find_first_meaningful_text(soup: BeautifulSoup) -> str:
-    for tag in soup.find_all(["p", "li", "div", "section"]):
-        text = tag.get_text(strip=True)
-        if len(text) > 50:
-            return text[:500]
+def _extract_site_name(soup: BeautifulSoup) -> str:
+    og = soup.find("meta", attrs={"property": re.compile(r"^og:site_name$", re.I)})
+    if not og:
+        og = soup.find("meta", attrs={"name": re.compile(r"^og:site_name$", re.I)})
+    if og and isinstance(og, Tag):
+        return str(og.get("content") or "").strip()
     return ""
 
 
-def _infer_section(url: str, h1: str) -> str:
-    path = urlparse(url).path.strip("/")
-    if not path:
-        return "Home"
-    parts = path.split("/")
-    top = parts[0].replace("-", " ").replace("_", " ").title()
-    if top:
-        return top
-    return h1 or "Other"
+def _extract_main_text(soup: BeautifulSoup, limit: int = _MAX_FULL_TEXT) -> str:
+    container = (
+        soup.find("article")
+        or soup.find("main")
+        or soup.find(None, {"role": "main"})
+        or soup.body
+        or soup
+    )
+    try:
+        clone = BeautifulSoup(str(container), "html.parser")
+    except Exception:
+        return ""
+    for tag in clone.find_all(_BOILERPLATE_TAGS):
+        tag.decompose()
+    text = clone.get_text(separator=" ", strip=True)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:limit]

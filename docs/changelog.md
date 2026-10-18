@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+## v0.3.0 (2026-10-18)
+
+- **Added:** `## Optional` section support for secondary pages (privacy, terms, cookies, legal, tags, authors, archives), plus `--optional-paths`.
+- **Added:** `--prefer-markdown`, `--check`, `--timeout`, `--max-pages`, `--version`, and `-v/--verbose`.
+- **Added:** `validate_llms_txt()` validator; public API exports; `py.typed` marker; CI workflow (ruff + pytest on Python 3.10–3.13).
+- **Changed:** `--full` extraction prefers `article`/`main`/`[role=main]`; site name prefers `og:site_name`; redundant `: description` notes omitted.
+- **Changed:** Tracking query parameters stripped; default ports normalized; single OIDC publish workflow on `v*` tags.
+- **Fixed:** Per-link `nofollow`/`ugc`/`sponsored` skipped; off-domain redirects skipped; transient errors retried with `Retry-After`; content sniffing and `apparent_encoding` fallback; robots `crawl-delay` honored.
+
 ## v0.1.10 (2026-06-07)
 
 - **Fixed:** `Development Status` classifier set to `4 - Beta` (was `3 - Alpha`)

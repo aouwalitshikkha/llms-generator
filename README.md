@@ -2,6 +2,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/v/llms-generator" alt="PyPI"></a>
+  <a href="https://github.com/aouwalitshikkha/llms-generator/actions/workflows/ci.yml"><img src="https://github.com/aouwalitshikkha/llms-generator/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://llms-generator.readthedocs.io/"><img src="https://img.shields.io/badge/docs-Read%20the%20Docs-blue" alt="Docs"></a>
   <a href="https://pypi.org/project/llms-generator/"><img src="https://img.shields.io/pypi/pyversions/llms-generator" alt="Python Versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/llms-generator" alt="License"></a>
@@ -35,6 +36,8 @@ pip install llms-generator[js]
 playwright install chromium
 ```
 
+**Requires:** Python 3.10+. Core dependencies are `requests` and `beautifulsoup4`; Playwright is optional (extra `js`).
+
 ---
 
 ## Usage
@@ -54,7 +57,14 @@ This creates `llms.txt` in your current folder. Add `--full` to also generate th
 | `--output` | `llms.txt` | Output file path |
 | `--full` | `false` | Also generate `llms-full.txt` |
 | `--no-js` | `false` | Skip Playwright JS fallback |
-| `--delay` | `1.0` | Seconds between requests |
+| `--delay` | `1.0` | Base seconds between requests (adapts to response time) |
+| `--timeout` | `30` | Per-request timeout in seconds |
+| `--max-pages` | `0` | Stop after this many pages (0 = unlimited) |
+| `--prefer-markdown` | `false` | Link to each page's markdown alternate when advertised |
+| `--optional-paths` | none | Extra path names to move into `## Optional` |
+| `--check` | `false` | Validate the output against the spec |
+| `-v`, `--verbose` | `false` | Enable debug logging |
+| `--version` | | Show the version and exit |
 
 ### Examples
 
@@ -63,6 +73,8 @@ llms-gen https://example.com
 llms-gen https://example.com --depth 3 --output site-llms.txt
 llms-gen https://example.com --full
 llms-gen https://example.com --no-js --delay 0.5
+llms-gen https://example.com --max-pages 100 --timeout 15 --check
+llms-gen https://example.com --prefer-markdown --optional-paths changelog,careers
 ```
 
 ---
@@ -81,13 +93,13 @@ Pages marked `noindex` are excluded. Pages marked `nofollow` are analyzed but th
 
 ### Crawl steps
 
-1. Parse `robots.txt`. Handles missing or restricted files.
-2. BFS from the start URL up to `--depth` levels.
+1. Parse `robots.txt`. Handles missing or restricted files, honors `crawl-delay`, and matches a fixed `llms-generator` user-agent token.
+2. BFS from the start URL up to `--depth` levels. Tracking parameters (`utm_*`, `fbclid`, `gclid`, `ref`, …) are stripped so they do not cause duplicate crawls.
 3. For each page:
-   - Fetch with `requests`
-   - Skip 4xx/5xx responses and non-HTML content
+   - Fetch with `requests`, retrying transient 429/5xx/timeouts with `Retry-After` backoff
+   - Skip 4xx/5xx responses, non-HTML content, and off-domain redirects
    - Fall back to Playwright if content is empty (JS-rendered sites)
-   - Extract title, h1, meta description, first paragraph, directory path
+   - Extract title, h1, meta description, `og:site_name`, and main content text
 4. Group pages by top-level directory path
 5. Write `llms.txt`
 
@@ -99,7 +111,7 @@ Pages marked `noindex` are excluded. Pages marked `nofollow` are analyzed but th
 /api/v1/users           -> ## Api
 ```
 
-Pages without a directory path use their `<h1>` as the section name.
+Pages without a directory path use their `<h1>` as the section name. Secondary pages (privacy, terms, cookies, legal, tags, authors, archives, …) are placed in a trailing `## Optional` section, as recommended by the spec. Use `--optional-paths` to add your own.
 
 ---
 
