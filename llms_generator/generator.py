@@ -39,8 +39,12 @@ def generate_llms_txt(
         lines.append("")
 
         for page in pages:
+            link_text = page.title or page.h1 or page.url
             desc = page.summary or page.h1 or page.title
-            lines.append(f"- [{page.title or page.h1 or page.url}]({page.url}): {desc}")
+            entry = f"- [{link_text}]({page.url})"
+            if desc and desc != link_text:
+                entry += f": {desc}"
+            lines.append(entry)
 
             if full and page.full_text:
                 lines.append("")
@@ -53,6 +57,10 @@ def generate_llms_txt(
 
 
 def _pick_site_name(sections: dict[str, list[PageInfo]]) -> str:
+    for pages in sections.values():
+        for p in pages:
+            if p.site_name:
+                return p.site_name
     for pages in sections.values():
         for p in pages:
             if p.title:
@@ -98,9 +106,12 @@ SECTION_PRIORITY = [
 def _order_sections(sections: dict[str, list[PageInfo]]) -> list[str]:
     custom: list[str] = []
     remaining: list[str] = []
+    optional: list[str] = []
 
     for name in sections:
-        if name in SECTION_PRIORITY:
+        if name == "Optional":
+            optional.append(name)
+        elif name in SECTION_PRIORITY:
             custom.append(name)
         else:
             remaining.append(name)
@@ -108,4 +119,4 @@ def _order_sections(sections: dict[str, list[PageInfo]]) -> list[str]:
     custom.sort(key=lambda n: SECTION_PRIORITY.index(n))
     remaining.sort()
 
-    return custom + remaining
+    return custom + remaining + optional

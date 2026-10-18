@@ -1,9 +1,11 @@
+from bs4 import BeautifulSoup
+
 from llms_generator.page_analyzer import (
     extract_page_info,
     parse_meta_robots,
     parse_robots_header,
 )
-from bs4 import BeautifulSoup
+from llms_generator.section_grouper import group_pages
 
 
 def test_parse_meta_robots_noindex():
@@ -50,4 +52,14 @@ def test_extract_page_info():
     assert info.title == "Test Page"
     assert info.h1 == "Test Heading"
     assert info.description == "A test page."
-    assert info.section == "Test"
+    assert "Test" in group_pages([info])
+
+
+def test_extract_og_site_name():
+    html = (
+        '<html><head><meta property="og:site_name" content="Acme">'
+        "</head><body><h1>H</h1><p>long enough content here for main text</p></body></html>"
+    )
+    info = extract_page_info("https://example.com/", html, 0)
+    assert info.site_name == "Acme"
+    assert info.full_text

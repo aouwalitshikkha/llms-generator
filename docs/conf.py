@@ -1,11 +1,12 @@
 ﻿import os
 import sys
+
 sys.path.insert(0, os.path.abspath(".."))
 
 project = "llms-generator"
 copyright = "2026, aouwalitshikkha"
 author = "aouwalitshikkha"
-release = "0.2.1"
+release = "0.3.0"
 
 extensions = [
     "myst_parser",
