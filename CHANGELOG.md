@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 (2026-10-18)
+
+- **Changed:** PyPI author/maintainer set to "Abdul Aouwal" (Technical SEO Consultant) and an `Author` project URL added.
+- **Changed:** README two-line description and a new "About the author" section.
+- **Docs:** Added canonical author/title guidance to `AGENTS.md`.
+
 ## v0.3.0 (2026-10-18)
 
 - **Added:** `## Optional` section support — secondary pages (privacy, terms, cookies, legal, tags, authors, archives, etc.) are grouped into a trailing `## Optional` section per the llms.txt spec. Add more via `--optional-paths`.

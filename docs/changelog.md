@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## v0.3.1 (2026-10-18)
+
+- **Changed:** Package author/maintainer set to "Abdul Aouwal"; added `Author` project URL.
+- **Changed:** README two-line description and "About the author" section.
+
 ## v0.3.0 (2026-10-18)
 
 - **Added:** `## Optional` section support for secondary pages (privacy, terms, cookies, legal, tags, authors, archives), plus `--optional-paths`.

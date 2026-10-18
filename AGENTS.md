@@ -3,6 +3,9 @@
 Crawl a website and generate `llms.txt` (the AI-ready site map standard at
 <https://llmstxt.org>). Single package, no runtime services.
 
+Author: **Abdul Aouwal**, Technical SEO Consultant (<https://abdulaouwal.com/>).
+Use this canonical name/title in metadata, docs, and commit authorship.
+
 ## Commands
 
 ```
